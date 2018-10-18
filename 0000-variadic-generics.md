@@ -45,7 +45,7 @@ The entire set of permitted contexts is as follows:
 ```rust
     let a = (1, ..(2, 3, 4));
     assert_eq!(a, (1, 2, 3, 4));
-
+```
 In addition to this, you can use the `..`-syntax on function parameters, if they have a tuple type.
 ```rust
     fn addition(..arg: (u32, u32)) -> u32 {
