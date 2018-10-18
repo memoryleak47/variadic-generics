@@ -25,38 +25,40 @@ This syntax is allowed only in specific contexts, where a comma-separated list o
 The elements of the tuple are inserted into this list.
 The entire set of permitted contexts is as follows:
 - Function Call
-
+```rust
     fn addition(x: u32, y: u32) { x + y }
     let result = addition(..(1, 2));
     assert_eq!(result, 3);
-
+```
 - Macro Invocation
-
+```rust
     let t = (1u32, 1u32);
     assert_eq!(..t);
-
+```
 - Array
-
+```rust
     let a = [1, ..(2, 3, 4)];
     assert_eq!(a, [1, 2, 3, 4]);
-
+```
 - Tuple
 
+```rust
     let a = (1, ..(2, 3, 4));
     assert_eq!(a, (1, 2, 3, 4));
 
 In addition to this, you can use the `..`-syntax on function parameters, if they have a tuple type.
-
+```rust
     fn addition(..arg: (u32, u32)) -> u32 {
         arg.0 + arg.1
     }
-
+```
 or using `..`-syntax again:
+```rust
 
     fn addition(..arg: (u32, u32)) -> u32 {
         [..arg].iter().sum()
     }
-
+```
 An argument prefixed by `..` has to be the last function argument.
 These addition functions are equivalent to the definition of `addition` above.
 
@@ -65,31 +67,32 @@ These addition functions are equivalent to the definition of `addition` above.
 Analogous to the unfold syntax for tuple values, there is also such a syntax for tuple types.
 The entire set of permitted contexts is as follows:
 - Type Parameters in definitions
-
+```rust
     fn foo<..T>() { ... }
-
+```
 In this context, if `foo<A, B, C, D>()` is called, the type T would be equal to the tuple type `(A, B, C, D)`.
 foo can also be called with one ore zero type arguments, this would cause T to be a one-element-tuple or the unit-type respectively.
 The `..T` syntax is also allowed in combination with other function parameters:
-
+```rust
     fn bar<T, ..U>() { ... }
-
+```
 But it is important, that every tuple type parameter is the last type parameter.
 Calling `bar<A, B, C, D>()` would cause T to be equal to A and U to be equal to `(B, C, D)`.
 - Type Parameters in applications
-
+```
     foo<..(u32, u32)>();
     type A = HashMap<..(String, bool)>;
-
+```
 - Where Clauses
-
+```rust
     fn foo<..T>() where ..T: Into<u32> { ... }
+```
 
 This requires every type within the tuple type T to implement `Into<u32>`.
 
 ### Examples
 This requires https://github.com/rust-lang/rust/issues/20041
-
+```rust
     fn u32_addition<..T>(..arg: T) -> u32
             where ..T = u32 {
         [..arg].iter().sum()
@@ -103,7 +106,7 @@ This requires https://github.com/rust-lang/rust/issues/20041
     fn tuple<..T>(..arg: T) -> T { arg }
 
     assert_eq!((true, false), tuple(true, false));
-
+```
 # Drawbacks
 [drawbacks]: #drawbacks
 
