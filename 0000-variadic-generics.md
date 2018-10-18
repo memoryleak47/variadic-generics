@@ -27,13 +27,9 @@ The entire set of permitted contexts is as follows:
 - Function Call
 ```rust
     fn addition(x: u32, y: u32) { x + y }
-    let result = addition(..(1, 2));
+    let t = (1, 2);
+    let result = addition(..t);
     assert_eq!(result, 3);
-```
-- Macro Invocation
-```rust
-    let t = (1u32, 1u32);
-    assert_eq!(..t); // probably impossible, as macros are evaluated before generics, right?
 ```
 - Array
 ```rust
@@ -45,17 +41,18 @@ The entire set of permitted contexts is as follows:
     let a = (1, ..(2, 3, 4));
     assert_eq!(a, (1, 2, 3, 4));
 ```
-In addition to this, you can use the `..`-syntax on function parameters, if they have a tuple type.
-This adds a function parameter for every element of the tuple.
+In addition to this, you can use the `..`-syntax on function parameters and their type, if they are tuples.
+Consider the example we have an argument `..arg: ..(A, B, C, D)`, this means, that the function now accepts 4 values of the types A, B, C and D.
+These are internally put together into the quadruple `arg`.
 ```rust
-    fn addition(..arg: (u32, u32)) -> u32 {
+    fn addition(..arg: ..(u32, u32)) -> u32 {
         arg.0 + arg.1
     }
 ```
 or using `..`-syntax again:
 ```rust
 
-    fn addition(..arg: (u32, u32)) -> u32 {
+    fn addition(..arg: ..(u32, u32)) -> u32 {
         [..arg].iter().sum()
     }
 ```
@@ -96,17 +93,17 @@ This requires every type within the tuple type T to implement `Into<u32>`.
 ### Examples
 This requires https://github.com/rust-lang/rust/issues/20041
 ```rust
-    fn u32_addition<..T>(..arg: T) -> u32
+    fn u32_addition<..T>(..arg: ..T) -> u32
             where ..T = u32 {
         [..arg].iter().sum()
     }
 
-    fn any_addition<T: std::ops::Add<T, Output=T>, ..U>(..arg: U) -> T
+    fn any_addition<T: std::ops::Add<T, Output=T>, ..U>(..arg: ..U) -> T
             where ..U = T {
         [..arg].iter().sum()
     }
 
-    fn tuple<..T>(..arg: T) -> T { arg }
+    fn tuple<..T>(..arg: ..T) -> T { arg }
 
     assert_eq!((true, false), tuple(true, false));
 ```
@@ -119,23 +116,16 @@ This RFC adds a new feature, namely the `..` syntax on tuples and therefore adds
 [rationale-and-alternatives]: #rationale-and-alternatives
 
 - don't add this or anything similar
+- alternatively to `foo(..arg: ..(A, B, C))` the syntax `foo(..arg: (A, B, C))` would also be possible, as proposed by @eddyb
+The disadvantage of this syntax is that the intuitive notion of `..t` considers the elements of the tuple `t`.
+And thus writing `..t: (A, B, C)` would seem to mean "all the elements of t are of type (A, B, C)", while it intended to mean that t is of type `(A, B, C)`.
 
 # Prior art
 [prior-art]: #prior-art
 
-Discuss prior art, both the good and the bad, in relation to this proposal.
-A few examples of what this can include are:
-
-- For language, library, cargo, tools, and compiler proposals: Does this feature exist in other programming languages and what experience have their community had?
-- For community proposals: Is this done by some other community and what were their experiences with it?
-- For other teams: What lessons can we learn from what other communities have done here?
-- Papers: Are there any published papers or great posts that discuss this? If you have some relevant papers to refer to, this can serve as a more detailed theoretical background.
-
-This section is intended to encourage you as an author to think about the lessons from other languages, provide readers of your RFC with a fuller picture.
-If there is no prior art, that is fine - your ideas are interesting to us whether they are brand new or if it is an adaptation from other languages.
-
-Note that while precedent set by other languages is some motivation, it does not on its own motivate an RFC.
-Please also take into consideration that rust sometimes intentionally diverges from common language features.
+C++11 has powerful variadic templates, yet these have some drawbacks:
+- Tedious syntax: `template <typename ...T> void foo(Ts ...args) { ... }`
+- You can't natively put conditions onto types like `a: T`
 
 # Unresolved questions
 [unresolved-questions]: #unresolved-questions
