@@ -33,7 +33,7 @@ The entire set of permitted contexts is as follows:
 - Macro Invocation
 ```rust
     let t = (1u32, 1u32);
-    assert_eq!(..t);
+    assert_eq!(..t); // probably impossible, as macros are evaluated before generics, right?
 ```
 - Array
 ```rust
@@ -41,12 +41,12 @@ The entire set of permitted contexts is as follows:
     assert_eq!(a, [1, 2, 3, 4]);
 ```
 - Tuple
-
 ```rust
     let a = (1, ..(2, 3, 4));
     assert_eq!(a, (1, 2, 3, 4));
 ```
 In addition to this, you can use the `..`-syntax on function parameters, if they have a tuple type.
+This adds a function parameter for every element of the tuple.
 ```rust
     fn addition(..arg: (u32, u32)) -> u32 {
         arg.0 + arg.1
@@ -66,6 +66,10 @@ These addition functions are equivalent to the definition of `addition` above.
 
 Analogous to the unfold syntax for tuple values, there is also such a syntax for tuple types.
 The entire set of permitted contexts is as follows:
+- Tuple Types
+```rust
+    type Family32 = (u32, ..(f32, i32));
+```
 - Type Parameters in definitions
 ```rust
     fn foo<..T>() { ... }
@@ -77,7 +81,7 @@ The `..T` syntax is also allowed in combination with other function parameters:
     fn bar<T, ..U>() { ... }
 ```
 But it is important, that every tuple type parameter is the last type parameter.
-Calling `bar<A, B, C, D>()` would cause T to be equal to A and U to be equal to `(B, C, D)`.
+Calling `bar<A, B, C, D>()` would mean `T = A` and `U = (B, C, D)`.
 - Type Parameters in applications
 ```
     foo<..(u32, u32)>();
@@ -87,7 +91,6 @@ Calling `bar<A, B, C, D>()` would cause T to be equal to A and U to be equal to 
 ```rust
     fn foo<..T>() where ..T: Into<u32> { ... }
 ```
-
 This requires every type within the tuple type T to implement `Into<u32>`.
 
 ### Examples
