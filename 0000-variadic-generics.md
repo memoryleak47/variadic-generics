@@ -6,48 +6,94 @@
 # Summary
 [summary]: #summary
 
-One paragraph explanation of the feature.
+This RFC adds variadic generics to Rust.
 
 # Motivation
 [motivation]: #motivation
 
-Why are we doing this? What use cases does it support? What is the expected outcome?
+* [fn types need a reform](http://smallcultfollowing.com/babysteps/blog/2013/10/10/fn-types-in-rust/), and being able to define a trait with a variable number of type parameters would help
+* working with functions which have a variable number of arguments is impossible right now (e.g. a generic `bind` method, `f.bind(a, b)(c) == f(a, b, c)`) and defining such functions may only be done (in a limited fashion) with macros
+* tuples also have similar restrictions right now, there is no way to define a function which takes any tuple and returns the first element, for example
 
-# Guide-level explanation
-[guide-level-explanation]: #guide-level-explanation
+# Detailed design
+[detailed-design]: #detailed-design
 
-Explain the proposal as if it was already included in the language and you were teaching it to another Rust programmer. That generally means:
+## The unfold syntax for tuple values
 
-- Introducing new named concepts.
-- Explaining the feature largely in terms of examples.
-- Explaining how Rust programmers should *think* about the feature, and how it should impact the way they use Rust. It should explain the impact as concretely as possible.
-- If applicable, provide sample error messages, deprecation warnings, or migration guidance.
-- If applicable, describe the differences between teaching this to existing Rust programmers and new Rust programmers.
+This RFC adds the tuple unfold syntax `..`.
+This syntax is allowed only in specific contexts, where a comma-separated list of expressions is expected.
+The elements of the tuple are inserted into this list.
+The entire set of permitted contexts is as follows:
+- Function Call
+    fn addition(x: u32, y: u32) { x + y }
+    let result = addition(..(1, 2));
+    assert_eq!(result, 3);
+- Macro Invocation
+    let t = (1u32, 1u32);
+    assert_eq!(..t);
+- Array
+    let a = [1, ..(2, 3, 4)];
+    assert_eq!(a, [1, 2, 3, 4]);
+- Tuple
+    let a = (1, ..(2, 3, 4));
+    assert_eq!(a, (1, 2, 3, 4));
 
-For implementation-oriented RFCs (e.g. for compiler internals), this section should focus on how compiler contributors should think about the change, and give examples of its concrete impact. For policy RFCs, this section should provide an example-driven introduction to the policy, and explain its impact in concrete terms.
+In addition to this, you can use the `..`-syntax on function parameters, if they have a tuple type.
+    fn addition(..arg: (u32, u32)) -> u32 {
+        arg.0 + arg.1
+    }
+or using `..`-syntax again:
+    fn addition(..arg: (u32, u32)) -> u32 {
+        [..arg].iter().sum()
+    }
+An argument prefixed by `..` has to be the last function argument.
+These addition functions are equivalent to the definition of `addition` above.
 
-# Reference-level explanation
-[reference-level-explanation]: #reference-level-explanation
+## The unfold syntax for tuple types
 
-This is the technical portion of the RFC. Explain the design in sufficient detail that:
+Analogous to the unfold syntax for tuple values, there is also such a syntax for tuple types.
+The entire set of permitted contexts is as follows:
+- Type Parameters in definitions
+    fn foo<..T>() { ... }
+In this context, if `foo<A, B, C, D>()` is called, the type T would be equal to the tuple type `(A, B, C, D)`.
+foo can also be called with one ore zero type arguments, this would cause T to be a one-element-tuple or the unit-type respectively.
+The `..T` syntax is also allowed in combination with other function parameters:
+    fn bar<T, ..U>() { ... }
+But it is important, that every tuple type parameter is the last type parameter.
+Calling `bar<A, B, C, D>()` would cause T to be equal to A and U to be equal to `(B, C, D)`.
+- Type Parameters in applications
+    foo<..(u32, u32)>();
+    type A = HashMap<..(String, bool)>;
+- Where Clauses
+    fn foo<..T>() where ..T: Into<u32> { ... }
+This requires every type within the tuple type T to implement `Into<u32>`.
 
-- Its interaction with other features is clear.
-- It is reasonably clear how the feature would be implemented.
-- Corner cases are dissected by example.
+### Examples
+This requires https://github.com/rust-lang/rust/issues/20041
 
-The section should return to the examples given in the previous section, and explain more fully how the detailed proposal makes those examples work.
+    fn u32_addition<..T>(..arg: T) -> u32
+            where ..T = u32 {
+        [..arg].iter().sum()
+    }
+
+    fn any_addition<T: std::ops::Add<T, Output=T>, ..U>(..arg: U) -> T
+            where ..U = T {
+        [..arg].iter().sum()
+    }
+
+    fn tuple<..T>(..arg: T) -> T { arg }
+
+    assert_eq!((true, false), tuple(true, false));
 
 # Drawbacks
 [drawbacks]: #drawbacks
 
-Why should we *not* do this?
+This RFC adds a new feature, namely the `..` syntax on tuples and therefore adds complexity to the language.
 
-# Rationale and alternatives
+# Alternatives
 [rationale-and-alternatives]: #rationale-and-alternatives
 
-- Why is this design the best in the space of possible designs?
-- What other designs have been considered and what is the rationale for not choosing them?
-- What is the impact of not doing this?
+- don't add this or anything similar
 
 # Prior art
 [prior-art]: #prior-art
