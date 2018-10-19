@@ -124,6 +124,13 @@ This requires https://github.com/rust-lang/rust/issues/20041
 
     assert_eq!((true, false), tuple(true, false));
 ```
+
+## Edge cases
+`..`-parameters can also be mutable.
+```rust
+    fn foo(mut ..args: ..(u32, u32)) { ... }
+```
+
 # Drawbacks
 [drawbacks]: #drawbacks
 
