@@ -31,14 +31,14 @@ The type `(<type-expression>;T1[: <type>], ..., Tn[: <type>], <condition_1>, ...
 The left `type-expression` may use all of the types `T1, ..., Tn` defined on the right side.
 ### Semantics
 A type T is subtype of type `(<type-expression>;T1[: <type>], ..., Tn[: <type>], <condition_1>, ..., <condition_m>)`,
-iff T is a tuple-type, which contains elements (S1, ..., Sp),
-and for every tuple member-type Si in T, there exist types `T1`, to `Tn`,
-which satify all conditions (1 to m), so that `Si` matches the `type-expression`,
+iff T is a tuple-type, where all `Sized` subtypes contain elements `(S1, ..., Sp)`,
+and for every tuple member-type `Si`, there exist types `T1`, to `Tn`,
+which satify all conditions (`condition_1` to `condition_m`), so that `Si` matches the `type-expression`,
 where `T1` to `Tn` are inserted accordingly.
 ### Examples
-- Tuples which only contain `u32`: `(u32;)`
-- Tuples where all members are `Clone`: `(T;T: Clone)`
-- Any Tuples: `(T;T)`
+- tuples which only contain `u32`: `(u32;)`
+- tuples where all members are `Clone`: `(T;T: Clone)`
+- any tuples: `(T;T)`
 
 ## The unfold syntax
 
