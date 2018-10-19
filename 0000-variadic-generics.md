@@ -92,6 +92,13 @@ The `..T` syntax is also allowed in combination with other function parameters:
 ```
 But it is important, that every tuple type parameter is the last type parameter.
 Calling `bar<A, B, C, D>()` would mean `T = A` and `U = (B, C, D)`.
+
+The `..T`-type parameters can also be used in:
+- Type definitions: `type VoidFn<..Args> = fn(..Args);`
+- Struct definitions: `struct S<..Args>(..Args);`
+- Enum definitions: `enum OptList<..Args>{ SomeList(Args), NoneList }`
+- Function definition: `fn foo<..T>() { ... }`
+- Impl Blocks: `impl<T, ..U> Vec<T> { ... }`
 ### in Type Parameters in applications
 ```
     foo<..(u32, u32)>();
@@ -122,7 +129,24 @@ This requires https://github.com/rust-lang/rust/issues/20041
 
     fn tuple<..T>(..arg: ..T) -> T { arg }
 
-    assert_eq!((true, false), tuple(true, false));
+    fn main() {
+        assert_eq!((true, false), tuple(true, false));
+    }
+
+    struct IProduct<..T>(tuple: T);
+    fn iproduct<..T: Iterator>(..arg: ..T) -> IProduct<..T> {
+        IProduct(arg)
+    }
+
+	// TODO: getting (Iterator<Item=u32>, Iterator<Item=i32>) to (u32, i32)
+    impl<..T> Iterator for I<..T> {
+		type Item = (..T)::Item);
+
+        fn next(&mut self) -> Option<Self::Item> {
+            
+        }
+    }
+	
 ```
 
 ## Edge cases
