@@ -85,7 +85,7 @@ The entire set of permitted contexts is as follows:
     fn foo<..T>() { ... }
 ```
 In this context, if `foo<A, B, C, D>()` is called, the type T would be equal to the tuple type `(A, B, C, D)`.
-foo can also be called with one ore zero type arguments, this would cause T to be a one-element-tuple or the unit-type respectively.
+foo can also be called with one or zero type arguments, this would cause T to be a one-element-tuple or the unit-type respectively.
 The `..T` syntax is also allowed in combination with other function parameters:
 ```rust
     fn bar<T, ..U>() { ... }
@@ -100,7 +100,7 @@ The `..T`-type parameters can also be used in:
 - Function definition: `fn foo<..T>() { ... }`
 - Impl Blocks: `impl<T, ..U> Vec<T> { ... }`
 ### in Type Parameters in applications
-```
+```rust
     foo<..(u32, u32)>();
     type A = HashMap<..(String, bool)>;
 ```
@@ -112,6 +112,21 @@ This requires every type within the tuple type T to implement `Into<u32>`.
 An equivalent definition would be:
 ```rust
 	fn foo<..T: Into<u32>>() { ... }
+```
+### In Associated Type Definitions
+```rust
+    // tuple of iterators
+    trait IterTuple {
+        type ..Items;
+    }
+
+    impl IterTuple for () {
+        type ..Items = ..();
+    }
+
+    impl<T: Iterator, ..U> IterTuple for (T, ..U) where U: IterTuple {
+        type ..Items = ..(T::Item, ..<U as IterTuple>::Items);
+    }
 ```
 
 ## Examples
@@ -133,7 +148,7 @@ This requires https://github.com/rust-lang/rust/issues/20041
         assert_eq!((true, false), tuple(true, false));
     }
 
-    struct IProduct<..T>(tuple: T);
+    struct IProduct<..T>(T);
     fn iproduct<..T: Iterator>(..arg: ..T) -> IProduct<..T> {
         IProduct(arg)
     }
