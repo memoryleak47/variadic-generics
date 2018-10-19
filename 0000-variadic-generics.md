@@ -24,7 +24,7 @@ This RFC adds abstract-tuple-types;<br />
 These are types of tuples, which impose conditions to all tuple elements.<br />
 All abstract-tuple-types are unsized.<br />
 A "tuple-type" is a either an abstract-tuple-type or any type matching `(T1, ..., Tn)`.
-#### Syntax
+### Syntax
 `[]`-brackets mean that something is optional<br />
 `...` means that there is a comma-separated list of this type (may also contain zero elements!).<br />
 Syntax of an abstract-tuple-type: `(<type-expression>;T1[: <type>], ..., Tn[: <type>], <condition_1>, ..., <condition_m>)`<br />
