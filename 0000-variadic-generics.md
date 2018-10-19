@@ -54,25 +54,6 @@ This is just allowed in very specific contexts as defined below.
     let a = (1, ..(2, 3, 4));
     assert_eq!(a, (1, 2, 3, 4));
 ```
-#### on Function Parameters
-In addition to this, you can use the `..`-syntax on function parameters and their type, if they are tuples.
-Consider the example we have an argument `..arg: (A, B, C, D)`, this means, that the function now accepts 4 values of the types A, B, C and D.
-These are internally put together into the quadruple `arg`.
-```rust
-    fn addition(*arg: (u32, u32)) -> u32 {
-        arg.0 + arg.1
-    }
-```
-or using `..`-syntax again:
-```rust
-
-    fn addition(*arg: (u32, u32)) -> u32 {
-        [..arg].iter().sum()
-    }
-```
-An argument prefixed by `..` has to be the last function argument.
-These addition functions are equivalent to the definition of `addition` above.
-
 #### Destructuring
 ```rust
 	let x = (1u32, 2u32, 3u32);
@@ -93,54 +74,48 @@ The entire set of permitted contexts is as follows:
 ```rust
     type Family32 = (u32, ..(f32, i32));
 ```
+#### in Type Parameters
+```rust
+    foo<..(u32, u32)>();
+    type A = HashMap<..(String, bool)>;
+```
+## The Asterisk Syntax
+
+The Asterisk Syntax combines tuples and variadic functions and templates.
+A function- or template- parameter prefixed by an asterisk `*` will automatically fold all following arguments into a tuple.
+
 #### in Type Parameters in definitions
 ```rust
     fn foo<*T>() { ... }
 ```
 In this context, if `foo<A, B, C, D>()` is called, the type T would be equal to the tuple type `(A, B, C, D)`.
 foo can also be called with one or zero type arguments, this would cause T to be a one-element-tuple or the unit-type respectively.
-The `..T` syntax is also allowed in combination with other function parameters:
+The `*T` syntax is also allowed in combination with other function parameters:
 ```rust
     fn bar<T, *U>() { ... }
 ```
-But it is important, that every tuple type parameter is the last type parameter.
+But it is important, that every asterisk type parameter is the last type parameter.
 Calling `bar<A, B, C, D>()` would mean `T = A` and `U = (B, C, D)`.
+Asterisk type parameters can not only be used for functions but anywhere, where normal type parameters are allowed.
 
-The `..T`-type parameters can also be used in:
-- Type definitions: `type VoidFn<*Args> = fn(..Args);`
-- Struct definitions: `struct S<*Args>(..Args);`
-- Enum definitions: `enum OptList<*Args>{ SomeList(Args), NoneList }`
-- Function definition: `fn foo<*T>() { ... }`
-- Impl Blocks: `impl<T, *U> Vec<T> { ... }`
-#### in Type Parameters in applications
+#### on Function Parameters
+In addition to this, you can use the `*`-syntax on function parameters.
+Consider a function with an argument `*arg: (A, B, C, D)`: this causes the function to accept 4 distinct arguments of type A, B, C and D.
+These are internally put together into the quadruple `arg`, when the function is called.
 ```rust
-    foo<..(u32, u32)>();
-    type A = HashMap<..(String, bool)>;
-```
-#### in Where Clauses
-```rust
-    fn foo<*T>() where T: (U; U: Into<u32>) { ... }
-```
-This requires every type within the tuple type T to implement `Into<u32>`.
-An equivalent definition would be:
-```rust
-	fn foo<*T: (U; U: Into<u32>)>() { ... }
-```
-#### In Associated Type Definitions
-```rust
-    // tuple of iterators
-    trait IterTuple {
-        type Items: (T;T);
-    }
-
-    impl IterTuple for () {
-        type Items = ();
-    }
-
-    impl<T: Iterator, *U> IterTuple for (T, ..U) where U: IterTuple {
-        type Items = (T::Item, ..<U as IterTuple>::Items);
+    fn addition(*arg: (u32, u32)) -> u32 {
+        arg.0 + arg.1
     }
 ```
+or using `..`-syntax again:
+```rust
+
+    fn addition(*arg: (u32, u32)) -> u32 {
+        [..arg].iter().sum()
+    }
+```
+An argument prefixed by `*` has to be the last function argument.
+These addition functions are equivalent to the definition of `addition` above.
 
 ## Examples
 ```rust
@@ -160,15 +135,15 @@ An equivalent definition would be:
 ```
 
 ## Edge cases
-`..`-parameters can also be mutable.
+`*`-parameters can also be mutable.
 ```rust
-    fn foo(mut ..args: ..(u32, u32)) { ... }
+    fn foo(mut *args: (u32, u32)) { ... }
 ```
 
 # Drawbacks
 [drawbacks]: #drawbacks
 
-This RFC adds a new feature, namely the `..` syntax on tuples and therefore adds complexity to the language.
+This RFC adds a new feature, namely the `..` and `*` syntax on tuples and therefore adds complexity to the language.
 
 # Alternatives
 [rationale-and-alternatives]: #rationale-and-alternatives
