@@ -20,20 +20,20 @@ This RFC adds variadic generics using a new tuple destructuring syntax.
 
 ## Tuple Types
 
-This RFC adds "abstract-tuple-types";
-These are types of tuples, which impose conditions to all tuple elements.
-Al abstract-tuple-types are unsized.
+This RFC adds abstract-tuple-types;<br />
+These are types of tuples, which impose conditions to all tuple elements.<br />
+All abstract-tuple-types are unsized.<br />
 A "tuple-type" is a either an abstract-tuple-type or any type matching `(T1, ..., Tn)`.
 #### Syntax
-`[]`-brackets mean that something is optional
-`...` means that there is a comma-separated list of this type (may also contain zero elements!).
-The type `(<type-expression>;T1[: <type>], ..., Tn[: <type>], <condition_1>, ..., <condition_m>)`
+`[]`-brackets mean that something is optional<br />
+`...` means that there is a comma-separated list of this type (may also contain zero elements!).<br />
+Syntax of an abstract-tuple-type: `(<type-expression>;T1[: <type>], ..., Tn[: <type>], <condition_1>, ..., <condition_m>)`<br />
 The left `type-expression` may use all of the types `T1, ..., Tn` defined on the right side.
 ### Semantics
-A type T is subtype of type `(<type-expression>;T1[: <type>], ..., Tn[: <type>], <condition_1>, ..., <condition_m>)`,
-iff T is a tuple-type, where all `Sized` subtypes contain elements `(S1, ..., Sp)`,
-and for every tuple member-type `Si`, there exist types `T1`, to `Tn`,
-which satify all conditions (`condition_1` to `condition_m`), so that `Si` matches the `type-expression`,
+A type T is subtype of type `(<type-expression>;T1[: <type>], ..., Tn[: <type>], <condition_1>, ..., <condition_m>)`,<br />
+iff T is a tuple-type, where all `Sized` subtypes contain elements `(S1, ..., Sp)`,<br />
+and for every tuple member-type `Si`, there exist types `T1`, to `Tn`,<br />
+which satify all conditions (`condition_1` to `condition_m`), so that `Si` matches the `type-expression`,<br />
 where `T1` to `Tn` are inserted accordingly.
 ### Examples
 - tuples which only contain `u32`: `(u32;)`
@@ -42,9 +42,9 @@ where `T1` to `Tn` are inserted accordingly.
 
 ## The unfold syntax
 
-This RFC adds the `..`-syntax for destructuring tuples.
-Intuitively the `..(a, b, ..., z)` syntax removes the parens of the tuple,
-and therefore returns a comma-separated list `a, b, ..., z`.
+This RFC adds the `..`-syntax for destructuring tuples.<br />
+Intuitively the `..(a, b, ..., z)` syntax removes the parens of the tuple,<br />
+and therefore returns a comma-separated list `a, b, ..., z`.<br />
 This is just allowed in very specific contexts as defined below.
 
 ### The unfold syntax for tuple values
@@ -79,8 +79,8 @@ This is just allowed in very specific contexts as defined below.
 
 ### The unfold syntax for tuple types
 
-Analogous to the unfold syntax for tuple values, there is also such a syntax for tuple types.
-The `..` syntax is only applicable for those types, which are Tuple Types by definition above.
+Analogous to the unfold syntax for tuple values, there is also such a syntax for tuple types.<br />
+The `..` syntax is only applicable for those types, which are Tuple Types by definition above.<br />
 The entire set of permitted contexts is as follows:
 #### in Tuple Types
 ```rust
@@ -100,19 +100,19 @@ A function- or template- parameter prefixed by an asterisk `*` will automaticall
 ```rust
     fn foo<*T>() { ... }
 ```
-In this context, if `foo<A, B, C, D>()` is called, the type T would be equal to the tuple type `(A, B, C, D)`.
-foo can also be called with one or zero type arguments, this would cause T to be a one-element-tuple or the unit-type respectively.
+In this context, if `foo<A, B, C, D>()` is called, the type T would be equal to the tuple type `(A, B, C, D)`.<br />
+foo can also be called with one or zero type arguments, this would cause T to be a one-element-tuple or the unit-type respectively.<br />
 The `*T` syntax is also allowed in combination with other function parameters:
 ```rust
     fn bar<T, *U>() { ... }
 ```
-But it is important, that every asterisk type parameter is the last type parameter.
-Calling `bar<A, B, C, D>()` would mean `T = A` and `U = (B, C, D)`.
+But it is important, that every asterisk type parameter is the last type parameter.<br />
+Calling `bar<A, B, C, D>()` would mean `T = A` and `U = (B, C, D)`.<br />
 Asterisk type parameters can not only be used for functions but anywhere, where normal type parameters are allowed.
 
 #### on Function Parameters
-In addition to this, you can use the `*`-syntax on function parameters.
-Consider a function with an argument `*arg: (A, B, C, D)`: this causes the function to accept 4 distinct arguments of type A, B, C and D.
+In addition to this, you can use the `*`-syntax on function parameters.<br />
+Consider a function with an argument `*arg: (A, B, C, D)`: this causes the function to accept 4 distinct arguments of type A, B, C and D.<br />
 These are internally put together into the quadruple `arg`, when the function is called.
 ```rust
     fn addition(*arg: (u32, u32)) -> u32 {
@@ -126,7 +126,7 @@ or using `..`-syntax again:
         [..arg].iter().sum()
     }
 ```
-An argument prefixed by `*` has to be the last function argument.
+An argument prefixed by `*` has to be the last function argument.<br />
 These addition functions are equivalent to the definition of `addition` above.
 
 ## Examples
