@@ -171,7 +171,7 @@ The asterisk can also be used in lambda-expressions.
         fn call(&self, *args: T);
     }
 
-    fn bind<T, F: FnVoid<T, *U>, *U>(f: F, t: T) -> impl VoidFn<*U> {
+    fn bind<T, F: VoidFn<T, *U>, *U>(f: F, t: T) -> impl VoidFn<*U> {
         |*u: U| f(t, ..u)
     }
 
