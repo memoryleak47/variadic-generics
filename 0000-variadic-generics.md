@@ -82,7 +82,8 @@ This is just allowed in very specific contexts as defined below.
 
 Analogous to the unfold syntax for tuple values, there is also such a syntax for tuple types.<br />
 The `..` syntax is only applicable for those types, which are Tuple Types by definition above.<br />
-The entire set of permitted contexts is as follows:
+This is also just allowed in very specific contexts as defined below.
+
 #### in Tuple Types
 ```rust
     type Family32 = (u32, ..(f32, i32));
@@ -102,7 +103,7 @@ A function- or template- parameter prefixed by an asterisk `*` will automaticall
     fn foo<*T>() { ... }
 ```
 In this context, if `foo<A, B, C, D>()` is called, the type T would be equal to the tuple type `(A, B, C, D)`.<br />
-foo can also be called with one or zero type arguments, this would cause T to be a one-element-tuple or the unit-type respectively.<br />
+foo can also be called with one (named `U`) or zero type arguments, this would cause T to be a `(U,)` or `()` respectively.<br />
 The `*T` syntax is also allowed in combination with other function parameters:
 ```rust
     fn bar<T, *U>() { ... }
@@ -140,7 +141,7 @@ These addition functions are equivalent to the definition of `addition` above.
         [..arg].iter().sum()
     }
 
-    fn tuple<*T>(*arg: T) -> T { arg }
+    fn tuple<T>(*arg: T) -> T { arg }
 
     fn main() {
         assert_eq!((true, false), tuple(true, false));
@@ -173,6 +174,5 @@ C++11 has powerful variadic templates, yet these have some drawbacks:
 # Unresolved questions
 [unresolved-questions]: #unresolved-questions
 
-- What parts of the design do you expect to resolve through the RFC process before this gets merged?
-- What parts of the design do you expect to resolve through the implementation of this feature before stabilization?
-- What related issues do you consider out of scope for this RFC that could be addressed in the future independently of the solution that comes out of this RFC?
+### What parts of the design do you expect to resolve through the RFC process before this gets merged?
+- Syntax: whether `..` and `*` are the best choices
