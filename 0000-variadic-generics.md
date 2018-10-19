@@ -91,6 +91,10 @@ Calling `bar<A, B, C, D>()` would mean `T = A` and `U = (B, C, D)`.
     fn foo<..T>() where ..T: Into<u32> { ... }
 ```
 This requires every type within the tuple type T to implement `Into<u32>`.
+An equivalent definition would be:
+```rust
+	fn foo<..T: Into<u32>>() { ... }
+```
 
 ## Examples
 This requires https://github.com/rust-lang/rust/issues/20041
