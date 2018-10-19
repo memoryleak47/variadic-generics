@@ -18,15 +18,27 @@ This RFC adds variadic generics using a new tuple destructuring syntax.
 # Detailed design
 [detailed-design]: #detailed-design
 
-## The Tuple Type
+## Tuple Types
 
-This RFC adds "tuple-types";
+This RFC adds "abstract-tuple-types";
 These are types of tuples, which impose conditions to all tuple elements.
-#### Examples
+Al abstract-tuple-types are unsized.
+A "tuple-type" is a either an abstract-tuple-type or any type matching `(T1, ..., Tn)`.
+#### Syntax
+`[]`-brackets mean that something is optional
+`...` means that there is a comma-separated list of this type (may also contain zero elements!).
+The type `(<type-expression>;T1[: <type>], ..., Tn[: <type>], <condition_1>, ..., <condition_m>)`
+The left `type-expression` may use all of the types `T1, ..., Tn` defined on the right side.
+### Semantics
+A type T is subtype of type `(<type-expression>;T1[: <type>], ..., Tn[: <type>], <condition_1>, ..., <condition_m>)`,
+iff T is a tuple-type, which contains elements (S1, ..., Sp),
+and for every tuple member-type Si in T, there exist types `T1`, to `Tn`,
+which satify all conditions (1 to m), so that `Si` matches the `type-expression`,
+where `T1` to `Tn` are inserted accordingly.
+### Examples
 - Tuples which only contain `u32`: `(u32;)`
 - Tuples where all members are `Clone`: `(T;T: Clone)`
 - Any Tuples: `(T;T)`
-- Old School Tuple Types: `(i32, u32)`
 
 ## The unfold syntax
 
