@@ -141,7 +141,7 @@ The asterisk can also be used in lambda-expressions, and can also be combined wi
         [..arg].iter().sum()
     }
 
-    fn any_addition<T: std::ops::Add<T, Output=T>, U: (T;)>(*arg: U) -> T
+    fn any_addition<T: std::ops::Add<T, Output=T>, U: (T;)>(*arg: U) -> T {
         [..arg].iter().sum()
     }
 
