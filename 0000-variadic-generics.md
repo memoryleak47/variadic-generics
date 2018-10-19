@@ -25,13 +25,13 @@ These are types of tuples, which impose conditions to all tuple elements.<br />
 All abstract-tuple-types are unsized.<br />
 A "tuple-type" is a either an abstract-tuple-type or any type matching `(T1, ..., Tn)`.
 ### Syntax
-`[]`-brackets mean that something is optional<br />
-`...` means that there is a comma-separated list of this type (may also contain zero elements!).<br />
-Syntax of an abstract-tuple-type: `(<type-expression>;T1[: <type>], ..., Tn[: <type>], <condition_1>, ..., <condition_m>)`<br />
-`type-expression` and the `condition_i`s may contain the types `T1, ..., Tn`.
-The `type`-specification of type `Ti` is allowed to contain type `Tj` if `j < i`.
+`[]`-brackets represent optional elements.<br />
+`...` represent comma-separated lists (may also contain zero elements!).<br />
+`<>`-brackets represents placeholders.<br />
+Syntax of an abstract-tuple-type: `(<type-expression>;T1[: <type_1>], ..., Tn[: <type_n>], <condition_1>, ..., <condition_m>)`<br />
+`type-expression`, `condition_i`s, and `type_i`s may contain the types `T1, ..., Tn`.
 ### Semantics
-A type `T` is subtype of type `(<type-expression>;T1[: <type>], ..., Tn[: <type>], <condition_1>, ..., <condition_m>)`,<br />
+A type `T` is subtype of type `(<type-expression>;T1[: <type_1>], ..., Tn[: <type_n>], <condition_1>, ..., <condition_m>)`,<br />
 iff `T` is a tuple-type, where for all `Sized` subtypes `T'` of `T` there are types `S1, ..., Sp`, where `T' = (S1, ..., Sp)`,<br />
 and for every tuple member-type `Si`, there exist types `T1`, to `Tn`,<br />
 which satify all conditions (`condition_1` to `condition_m`),<br />
