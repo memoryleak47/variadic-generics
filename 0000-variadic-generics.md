@@ -119,11 +119,11 @@ These addition functions are equivalent to the definition of `addition` above.
 
 ## Examples
 ```rust
-    fn u32_addition<*T: (u32;)>(*arg: T) -> u32 {
+    fn u32_addition<T: (u32;)>(*arg: T) -> u32 {
         [..arg].iter().sum()
     }
 
-    fn any_addition<T: std::ops::Add<T, Output=T>, *U: (T;)>(*arg: U) -> T
+    fn any_addition<T: std::ops::Add<T, Output=T>, U: (T;)>(*arg: U) -> T
         [..arg].iter().sum()
     }
 
@@ -154,8 +154,8 @@ This RFC adds a new feature, namely the `..` and `*` syntax on tuples and theref
 [prior-art]: #prior-art
 
 C++11 has powerful variadic templates, yet these have some drawbacks:
-- Tedious syntax: `template <typename ...T> void foo(Ts ...args) { ... }`
-- You can't natively put conditions onto types like `a: T`
+- Tedious syntax: `template <typename ...Ts> void foo(Ts ...args) { ... }`
+- You can't easily impose conditions onto types like `T: Clone`
 
 # Unresolved questions
 [unresolved-questions]: #unresolved-questions
