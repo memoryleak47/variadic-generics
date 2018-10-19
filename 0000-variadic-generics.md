@@ -6,7 +6,7 @@
 # Summary
 [summary]: #summary
 
-This RFC adds variadic generics using a new tuple destructuring syntax.
+This RFC adds variadic generics using tuples.
 
 # Motivation
 [motivation]: #motivation
