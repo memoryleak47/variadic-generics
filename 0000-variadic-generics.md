@@ -28,7 +28,8 @@ A "tuple-type" is a either an abstract-tuple-type or any type matching `(T1, ...
 `[]`-brackets mean that something is optional<br />
 `...` means that there is a comma-separated list of this type (may also contain zero elements!).<br />
 Syntax of an abstract-tuple-type: `(<type-expression>;T1[: <type>], ..., Tn[: <type>], <condition_1>, ..., <condition_m>)`<br />
-The left `type-expression` may use all of the types `T1, ..., Tn` defined on the right side.
+`type-expression` and the `condition_i`s may contain the types `T1, ..., Tn`.
+The `type`-specification of type `Ti` is allowed to contain type `Tj` if `j < i`.
 ### Semantics
 A type `T` is subtype of type `(<type-expression>;T1[: <type>], ..., Tn[: <type>], <condition_1>, ..., <condition_m>)`,<br />
 iff `T` is a tuple-type, where for all `Sized` subtypes `T'` of `T` there are types `S1, ..., Sp`, where `T' = (S1, ..., Sp)`,<br />
