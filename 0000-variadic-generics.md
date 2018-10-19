@@ -61,6 +61,17 @@ or using `..`-syntax again:
 An argument prefixed by `..` has to be the last function argument.
 These addition functions are equivalent to the definition of `addition` above.
 
+### Destructuring
+```rust
+	let x = (1u32, 2u32, 3u32);
+	let (a, ..b) = x;
+	let (ref c, ref ..d) = x;
+	assert_eq!(a, 1u32);
+	assert_eq!(b, (2u32, 3u32));
+	assert_eq!(c, &1u32);
+	assert_eq!(d, (&2u32, &3u32));
+```
+
 ## The unfold syntax for tuple types
 
 Analogous to the unfold syntax for tuple values, there is also such a syntax for tuple types.
