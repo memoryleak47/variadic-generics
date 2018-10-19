@@ -69,13 +69,13 @@ This is just allowed in very specific contexts as defined below.
 ```
 #### Destructuring
 ```rust
-	let x = (1u32, 2u32, 3u32);
-	let (a, ..b) = x;
-	let (ref c, ref ..d) = x;
-	assert_eq!(a, 1u32);
-	assert_eq!(b, (2u32, 3u32));
-	assert_eq!(c, &1u32);
-	assert_eq!(d, (&2u32, &3u32));
+    let x = (1u32, 2u32, 3u32);
+    let (a, ..b) = x;
+    let (ref c, ref ..d) = x;
+    assert_eq!(a, 1u32);
+    assert_eq!(b, (2u32, 3u32));
+    assert_eq!(c, &1u32);
+    assert_eq!(d, (&2u32, &3u32));
 ```
 
 ### The unfold syntax for tuple types
@@ -129,10 +129,14 @@ or using `..`-syntax again:
     }
 ```
 An argument prefixed by `*` has to be the last function argument.<br />
-These addition functions are equivalent to the definition of `addition` above.
+These addition functions are equivalent to the definition of `addition` above.<br />
+The asterisk can also be used in lambda-expressions.
 
 ## Examples
 ```rust
+    use std::fmt::Display;
+
+    // addition
     fn u32_addition<T: (u32;)>(*arg: T) -> u32 {
         [..arg].iter().sum()
     }
@@ -141,10 +145,39 @@ These addition functions are equivalent to the definition of `addition` above.
         [..arg].iter().sum()
     }
 
+    // tuple
     fn tuple<T>(*arg: T) -> T { arg }
+
+    // display tuple
+    trait DisplayTuple {
+        fn printall(&self);
+    }
+
+    impl DisplayTuple for () {
+        fn printall(&self) {}
+    }
+
+    impl DisplayTuple for (T, ..U)
+            where T: Display, U: DisplayTuple {
+        fn printall(&self) {
+            let (a, ..b) = self;
+            println!("{}", a);
+            b.printall();
+        }
+    }
+
+    // bind
+    trait VoidFn<*T> {
+        fn call(&self, *args: T);
+    }
+
+    fn bind<T, F: FnVoid<T, *U>, *U>(f: F, t: T) -> impl VoidFn<*U> {
+        |*u: U| f(t, ..u)
+    }
 
     fn main() {
         assert_eq!((true, false), tuple(true, false));
+        (2i32, 3u32).printall();
     }
 ```
 
