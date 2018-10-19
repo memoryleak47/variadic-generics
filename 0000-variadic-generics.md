@@ -130,7 +130,7 @@ or using `..`-syntax again:
 ```
 An argument prefixed by `*` has to be the last function argument.<br />
 These addition functions are equivalent to the definition of `addition` above.<br />
-The asterisk can also be used in lambda-expressions.
+The asterisk can also be used in lambda-expressions, and can also be combined with `mut`: `|mut *arg| { ... }`.
 
 ## Examples
 ```rust
@@ -166,12 +166,8 @@ The asterisk can also be used in lambda-expressions.
         }
     }
 
-    // bind
-    trait VoidFn<*T> {
-        fn call(&self, *args: T);
-    }
-
-    fn bind<T, F: VoidFn<T, *U>, *U>(f: F, t: T) -> impl VoidFn<*U> {
+	// bind
+    fn bind<T, F: Fn(T, *U), *U>(f: F, t: T) -> impl Fn(*U) {
         |*u: U| f(t, ..u)
     }
 
@@ -179,12 +175,6 @@ The asterisk can also be used in lambda-expressions.
         assert_eq!((true, false), tuple(true, false));
         (2i32, 3u32).printall();
     }
-```
-
-## Edge cases
-`*`-parameters can also be mutable.
-```rust
-    fn foo(mut *args: (u32, u32)) { ... }
 ```
 
 # Drawbacks
