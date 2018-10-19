@@ -95,7 +95,7 @@ This is also just allowed in very specific contexts as defined below.
 ```
 ## The Asterisk Syntax
 
-The Asterisk Syntax combines tuples and variadic functions and templates.
+The Asterisk Syntax combines tuples and variadic functions and templates.<br />
 A function- or template- parameter prefixed by an asterisk `*` will automatically fold all following arguments into a tuple.
 
 #### in Type Parameters in definitions
