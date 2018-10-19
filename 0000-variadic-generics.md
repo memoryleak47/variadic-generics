@@ -30,11 +30,11 @@ A "tuple-type" is a either an abstract-tuple-type or any type matching `(T1, ...
 Syntax of an abstract-tuple-type: `(<type-expression>;T1[: <type>], ..., Tn[: <type>], <condition_1>, ..., <condition_m>)`<br />
 The left `type-expression` may use all of the types `T1, ..., Tn` defined on the right side.
 ### Semantics
-A type T is subtype of type `(<type-expression>;T1[: <type>], ..., Tn[: <type>], <condition_1>, ..., <condition_m>)`,<br />
-iff T is a tuple-type, where all `Sized` subtypes contain elements `(S1, ..., Sp)`,<br />
+A type `T` is subtype of type `(<type-expression>;T1[: <type>], ..., Tn[: <type>], <condition_1>, ..., <condition_m>)`,<br />
+iff `T` is a tuple-type, where for all `Sized` subtypes `T'` of `T` there are types `S1, ..., Sp`, where `T' = (S1, ..., Sp)`,<br />
 and for every tuple member-type `Si`, there exist types `T1`, to `Tn`,<br />
-which satify all conditions (`condition_1` to `condition_m`), so that `Si` matches the `type-expression`,<br />
-where `T1` to `Tn` are inserted accordingly.
+which satify all conditions (`condition_1` to `condition_m`),<br />
+so that `Si` matches the `type-expression`, where `T1` to `Tn` are inserted into `type-expression` accordingly.
 ### Examples
 - tuples which only contain `u32`: `(u32;)`
 - tuples where all members are `Clone`: `(T;T: Clone)`
