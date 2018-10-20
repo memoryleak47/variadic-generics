@@ -30,9 +30,10 @@ Note, that the following informal syntax is not part of abstract-tuple-types, bu
 - `[]`-brackets represent optional elements.<br />
 - `...` represent continuing patterns.<br />
 - `<>`-brackets represents placeholders.<br />
-<br />
+
 Syntax of an abstract-tuple-type: `(<type-expression>;T1[: <type_1>], ..., Tn[: <type_n>], <condition_1>, ..., <condition_m>)`<br />
 `type-expression`, `condition_i`s, and `type_i`s may contain the types `T1, ..., Tn`.
+
 ### Semantics
 A non-abstract tuple-type `(S1, ..., Sm)` is subtype of the abstract-tuple-type `(<type-expression>;T1[: <type_1>], ..., Tn[: <type_n>], <condition_1>, ..., <condition_m>)`,<br />
 iff for every tuple member-type `Si`, there exist types `T1`, to `Tn`,<br />
