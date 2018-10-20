@@ -21,25 +21,28 @@ This RFC adds variadic generics using tuples.
 ## Tuple Types
 
 This RFC adds abstract-tuple-types;<br />
-These are types of tuples, which impose conditions to all tuple elements.<br />
-All abstract-tuple-types are unsized.<br />
+These types are `trait`s or at least behave like them, as you can use them as trait bounds and they are unsized.<br />
+abstract-tuple-types are types of tuples, which impose conditions to all tuple elements.<br />
 A "tuple-type" is a either an abstract-tuple-type or any type matching `(T1, ..., Tn)`.
+It is forbidden to implement an abstract-tuple-type on any type manually.
 ### Syntax
-`[]`-brackets represent optional elements.<br />
-`...` represent comma-separated lists (may also contain zero elements!).<br />
-`<>`-brackets represents placeholders.<br />
+Note, that the following informal syntax is not part of abstract-tuple-types, but will be used to define the syntax!<br />
+- `[]`-brackets represent optional elements.<br />
+- `...` represent continuing patterns.<br />
+- `<>`-brackets represents placeholders.<br />
+<br />
 Syntax of an abstract-tuple-type: `(<type-expression>;T1[: <type_1>], ..., Tn[: <type_n>], <condition_1>, ..., <condition_m>)`<br />
 `type-expression`, `condition_i`s, and `type_i`s may contain the types `T1, ..., Tn`.
 ### Semantics
-A type `T` is subtype of type `(<type-expression>;T1[: <type_1>], ..., Tn[: <type_n>], <condition_1>, ..., <condition_m>)`,<br />
-iff `T` is a tuple-type, where for all `Sized` subtypes `T'` of `T` there are types `S1, ..., Sp`, where `T' = (S1, ..., Sp)`,<br />
-and for every tuple member-type `Si`, there exist types `T1`, to `Tn`,<br />
+A non-abstract tuple-type `(S1, ..., Sm)` is subtype of the abstract-tuple-type `(<type-expression>;T1[: <type_1>], ..., Tn[: <type_n>], <condition_1>, ..., <condition_m>)`,<br />
+iff for every tuple member-type `Si`, there exist types `T1`, to `Tn`,<br />
 which satify all conditions (`condition_1` to `condition_m`),<br />
 so that `Si` matches the `type-expression`, where `T1` to `Tn` are inserted into `type-expression` accordingly.
 ### Examples
 - tuples which only contain `u32`: `(u32;)`
 - tuples where all members are `Clone`: `(T;T: Clone)`
 - any tuples: `(T;T)`
+- any tuples, which only contain elements, which are pairs of addable types: `((T,U); T: std::ops::Add<U>, U)`
 
 ## The unfold syntax
 
@@ -95,8 +98,10 @@ This is also just allowed in very specific contexts as defined below.
 ```
 ## The Asterisk Syntax
 
-The Asterisk Syntax combines tuples and variadic functions and templates.<br />
-A function- or template- parameter prefixed by an asterisk `*` will automatically fold all following arguments into a tuple.
+The Asterisk Syntax allows to create<br />
+- functions with a variable amount of parameters, and
+- generics with a variable amount of generic parameters<br />
+by folding this variable amount of parameters into one tuple paramter of variable size, which in turn may be processed using `..`.
 
 #### in Type Parameters in definitions
 ```rust
@@ -104,7 +109,8 @@ A function- or template- parameter prefixed by an asterisk `*` will automaticall
 ```
 In this context, if `foo<A, B, C, D>()` is called, the type T would be equal to the tuple type `(A, B, C, D)`.<br />
 foo can also be called with one (named `U`) or zero type arguments, this would cause T to be a `(U,)` or `()` respectively.<br />
-The `*T` syntax is also allowed in combination with other function parameters:
+Every asterisk type parameter `*T` implicitly gets the trait bound `(X;X)`, and therefore you can call `..T` onto it.<br />
+The `*T` syntax is also allowed in combination with other generic parameters:
 ```rust
     fn bar<T, *U>() { ... }
 ```
@@ -157,8 +163,8 @@ The asterisk can also be used in lambda-expressions, and can also be combined wi
         fn printall(&self) {}
     }
 
-    impl DisplayTuple for (T, ..U)
-            where T: Display, U: DisplayTuple {
+    impl<T, U> DisplayTuple for (T, ..U)
+                where T: Display, U: DisplayTuple {
         fn printall(&self) {
             let (a, ..b) = self;
             println!("{}", a);
@@ -193,6 +199,7 @@ This RFC adds a new feature, namely the `..` and `*` syntax on tuples and theref
 C++11 has powerful variadic templates, yet these have some drawbacks:
 - Tedious syntax: `template <typename ...Ts> void foo(Ts ...args) { ... }`
 - You can't easily impose conditions onto types like `T: Clone`
+The asterisk syntax `*T` is inspired by pythons `*args`-syntax.
 
 # Unresolved questions
 [unresolved-questions]: #unresolved-questions
