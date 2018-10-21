@@ -155,6 +155,10 @@ The asterisk can also be used in lambda-expressions, and can also be combined wi
     // tuple
     fn tuple<T>(*arg: T) -> T { arg }
 
+    fn tuplezip<T: (X;X), U: (X;X)>(t: T, u: U) -> (..T, ..U) {
+        (..t, ..u)
+    }
+
     // display tuple
     trait DisplayTuple {
         fn printall(&self);
