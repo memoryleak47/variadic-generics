@@ -18,24 +18,25 @@ This RFC adds variadic generics using tuples.
 # Detailed design
 [detailed-design]: #detailed-design
 
+## Syntax
+Note: The following syntax is not formally part of this RFC, but will be used to define the syntax!<br />
+- `---` patterns represent continuing patterns, eg. `(T1, T2, ---, T5)` means `(T1, T2, T3, T4, T5)`.<br />
+- strings in double quotes (`"type"`) represent placeholders.<br />
+- strings in single quotes (`'opt'`) represent optional elements.<br />
+
 ## Tuple Types
 
 This RFC adds abstract-tuple-types;<br />
-These types are `trait`s or at least behave like them, as you can use them as trait bounds and they are unsized.<br />
+These types are traits or at least behave like them, as you can use them as trait bounds and they are unsized.<br />
 abstract-tuple-types are types of tuples, which impose conditions to all tuple elements.<br />
-A "tuple-type" is a either an abstract-tuple-type or any type matching `(T1, ..., Tn)`.
+A tuple-type is a either an abstract-tuple-type or any type matching `(T1, ---, Tn)`.
 It is forbidden to implement an abstract-tuple-type on any type manually.
-### Syntax
-Note, that the following informal syntax is not part of abstract-tuple-types, but will be used to define the syntax!<br />
-- `[]`-brackets represent optional elements.<br />
-- `...` represent continuing patterns.<br />
-- `<>`-brackets represents placeholders.<br />
 
-Syntax of an abstract-tuple-type: `(<type-expression>;T1[: <type_1>], ..., Tn[: <type_n>], <condition_1>, ..., <condition_m>)`<br />
-`type-expression`, `condition_i`s, and `type_i`s may contain the types `T1, ..., Tn`.
+Syntax of an abstract-tuple-type: `("type-expression";T1': "type_1"', ---, Tn': "type_n"', "condition_1", ---, "condition_m")`<br />
+`type-expression`, `condition_i`s, and `type_i`s may contain the types `T1, ---, Tn`.
 
 ### Semantics
-A non-abstract tuple-type `(S1, ..., Sm)` is subtype of the abstract-tuple-type `(<type-expression>;T1[: <type_1>], ..., Tn[: <type_n>], <condition_1>, ..., <condition_m>)`,<br />
+A non-abstract tuple-type `(S1, ---, Sm)` is subtype of the abstract-tuple-type `("type-expression";T1': "type_1"', ---, Tn': "type_n"', "condition_1", ---, "condition_m")`<br />
 iff for every tuple member-type `Si`, there exist types `T1`, to `Tn`,<br />
 which satify all conditions (`condition_1` to `condition_m`),<br />
 so that `Si` matches the `type-expression`, where `T1` to `Tn` are inserted into `type-expression` accordingly.
@@ -47,9 +48,9 @@ so that `Si` matches the `type-expression`, where `T1` to `Tn` are inserted into
 
 ## The unfold syntax
 
-This RFC adds the `..`-syntax for destructuring tuples.<br />
-Intuitively the `..(a, b, ..., z)` syntax removes the parens of the tuple,<br />
-and therefore returns a comma-separated list `a, b, ..., z`.<br />
+This RFC adds the `...`-syntax for destructuring tuples.<br />
+Intuitively the `...(a, b, ---, z)` syntax removes the parens of the tuple,<br />
+and therefore returns a comma-separated list `a, b, ---, z`.<br />
 This is just allowed in very specific contexts as defined below.
 
 ### The unfold syntax for tuple values
@@ -58,24 +59,24 @@ This is just allowed in very specific contexts as defined below.
 ```rust
     fn addition(x: u32, y: u32) { x + y }
     let t = (1, 2);
-    let result = addition(..t);
+    let result = addition(...t);
     assert_eq!(result, 3);
 ```
 #### in Arrays
 ```rust
-    let a = [1, ..(2, 3, 4)];
+    let a = [1, ...(2, 3, 4)];
     assert_eq!(a, [1, 2, 3, 4]);
 ```
 #### in Tuples
 ```rust
-    let a = (1, ..(2, 3, 4));
+    let a = (1, ...(2, 3, 4));
     assert_eq!(a, (1, 2, 3, 4));
 ```
 #### Destructuring
 ```rust
     let x = (1u32, 2u32, 3u32);
-    let (a, ..b) = x;
-    let (ref c, ref ..d) = x;
+    let (a, ...b) = x;
+    let (ref c, ref ...d) = x;
     assert_eq!(a, 1u32);
     assert_eq!(b, (2u32, 3u32));
     assert_eq!(c, &1u32);
@@ -85,78 +86,78 @@ This is just allowed in very specific contexts as defined below.
 ### The unfold syntax for tuple types
 
 Analogous to the unfold syntax for tuple values, there is also such a syntax for tuple types.<br />
-The `..` syntax is only applicable for those types, which are Tuple Types by definition above.<br />
+The `...` syntax is only applicable for those types, which are Tuple Types by definition above.<br />
 This is also just allowed in very specific contexts as defined below.
 
 #### in Tuple Types
 ```rust
-    type Family32 = (u32, ..(f32, i32));
+    type Family32 = (u32, ...(f32, i32));
 ```
 #### in Type Parameters
 ```rust
-    foo<..(u32, u32)>();
-    type A = HashMap<..(String, bool)>;
+    foo<...(u32, u32)>();
+    type A = HashMap<...(String, bool)>;
 ```
-## The Asterisk Syntax
+## Variable Number of Arguments
 
-The Asterisk Syntax allows to create<br />
+The `...`-Syntax used as prefix of a (function / generic) parameter creates<br />
 - functions with a variable amount of parameters, and
 - generics with a variable amount of generic parameters<br />
-by folding this variable amount of parameters into one tuple paramter of variable size, which in turn may be processed using `..`.
+by folding this variable amount of parameters into one tuple paramter of variable size, which in turn may be processed using `...`.
 
 #### in Type Parameters in definitions
 ```rust
-    fn foo<*T>() { ... }
+    fn foo<...T>() { /* code */ }
 ```
 In this context, if `foo<A, B, C, D>()` is called, the type T would be equal to the tuple type `(A, B, C, D)`.<br />
 foo can also be called with one (named `U`) or zero type arguments, this would cause T to be a `(U,)` or `()` respectively.<br />
-Every asterisk type parameter `*T` implicitly gets the trait bound `(X;X)`, and therefore you can call `..T` onto it.<br />
-The `*T` syntax is also allowed in combination with other generic parameters:
+Every type parameter of the form `...T` implicitly gets the trait bound `(X;X)`, and therefore you can call `...T` onto it.<br />
+The `...T` syntax is also allowed in combination with other generic parameters:
 ```rust
-    fn bar<T, *U>() { ... }
+    fn bar<T, ...U>() { /* code */ }
 ```
-But it is important, that every asterisk type parameter is the last type parameter.<br />
+But it is important, that every `...T` type parameter is the last type parameter.<br />
 Calling `bar<A, B, C, D>()` would mean `T = A` and `U = (B, C, D)`.<br />
 Asterisk type parameters can not only be used for functions but anywhere, where normal type parameters are allowed.
 
 #### on Function Parameters
-In addition to this, you can use the `*`-syntax on function parameters.<br />
-Consider a function with an argument `*arg: (A, B, C, D)`: this causes the function to accept 4 distinct arguments of type A, B, C and D.<br />
+In addition to this, you can use the `...`-syntax on function parameters.<br />
+Consider a function with an argument `...arg: (A, B, C, D)`: this causes the function to accept 4 distinct arguments of type A, B, C and D.<br />
 These are internally put together into the quadruple `arg`, when the function is called.
 ```rust
-    fn addition(*arg: (u32, u32)) -> u32 {
+    fn addition(...arg: (u32, u32)) -> u32 {
         arg.0 + arg.1
     }
 ```
-or using `..`-syntax again:
+or using `...`-syntax again:
 ```rust
 
-    fn addition(*arg: (u32, u32)) -> u32 {
-        [..arg].iter().sum()
+    fn addition(...arg: (u32, u32)) -> u32 {
+        [...arg].iter().sum()
     }
 ```
-An argument prefixed by `*` has to be the last function argument.<br />
+An argument prefixed by `...` has to be the last function argument.<br />
 These addition functions are equivalent to the definition of `addition` above.<br />
-The asterisk can also be used in lambda-expressions, and can also be combined with `mut`: `|mut *arg| { ... }`.
+The `...` syntax can also be used in lambda-expressions, and can also be combined with `mut`: `|mut ...arg| { /* code */ }`.
 
 ## Examples
 ```rust
     use std::fmt::Display;
 
     // addition
-    fn u32_addition<T: (u32;)>(*arg: T) -> u32 {
-        [..arg].iter().sum()
+    fn u32_addition<T: (u32;)>(...arg: T) -> u32 {
+        [...arg].iter().sum()
     }
 
-    fn any_addition<T: std::ops::Add<T, Output=T>, U: (T;)>(*arg: U) -> T {
-        [..arg].iter().sum()
+    fn any_addition<T: std::ops::Add<T, Output=T>, U: (T;)>(...arg: U) -> T {
+        [...arg].iter().sum()
     }
 
     // tuple
-    fn tuple<T>(*arg: T) -> T { arg }
+    fn tuple<T>(...arg: T) -> T { arg }
 
-    fn tuplezip<T: (X;X), U: (X;X)>(t: T, u: U) -> (..T, ..U) {
-        (..t, ..u)
+    fn tuplezip<T: (X;X), U: (X;X)>(t: T, u: U) -> (...T, ...U) {
+        (...t, ...u)
     }
 
     // display tuple
@@ -168,18 +169,18 @@ The asterisk can also be used in lambda-expressions, and can also be combined wi
         fn printall(&self) {}
     }
 
-    impl<T, U> DisplayTuple for (T, ..U)
+    impl<T, U> DisplayTuple for (T, ...U)
                 where T: Display, U: DisplayTuple {
         fn printall(&self) {
-            let (a, ..b) = self;
+            let (a, ...b) = self;
             println!("{}", a);
             b.printall();
         }
     }
 
-	// bind
-    fn bind<T, F: Fn(T, ..U), *U>(f: F, t: T) -> impl Fn(..U) {
-        |*u: U| f(t, ..u)
+    // bind
+    fn bind<T, F: Fn(T, ...U), ...U>(f: F, t: T) -> impl Fn(...U) {
+        |...u: U| f(t, ...u)
     }
 
     fn main() {
@@ -191,7 +192,7 @@ The asterisk can also be used in lambda-expressions, and can also be combined wi
 # Drawbacks
 [drawbacks]: #drawbacks
 
-This RFC adds a new feature, namely the `..` and `*` syntax on tuples and therefore adds complexity to the language.
+This RFC adds the `...` syntax on tuples and therefore adds complexity to the language.
 
 # Alternatives
 [rationale-and-alternatives]: #rationale-and-alternatives
@@ -204,10 +205,6 @@ This RFC adds a new feature, namely the `..` and `*` syntax on tuples and theref
 C++11 has powerful variadic templates, yet these have some drawbacks:
 - Tedious syntax: `template <typename ...Ts> void foo(Ts ...args) { ... }`
 - You can't easily impose conditions onto types like `T: Clone`
-The asterisk syntax `*T` is inspired by pythons `*args`-syntax.
 
 # Unresolved questions
 [unresolved-questions]: #unresolved-questions
-
-### What parts of the design do you expect to resolve through the RFC process before this gets merged?
-- Syntax: whether `..` and `*` are the best choices
