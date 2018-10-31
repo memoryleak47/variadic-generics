@@ -32,11 +32,11 @@ abstract-tuple-types are types of tuples, which impose conditions to all tuple e
 A tuple-type is a either an abstract-tuple-type or any type matching `(T1, ---, Tn)`.
 It is forbidden to implement an abstract-tuple-type on any type manually.
 
-Syntax of an abstract-tuple-type: `("type-expression";T1': "type_1"', ---, Tn': "type_n"', "condition_1", ---, "condition_m")`<br />
+Syntax of an abstract-tuple-type: `("type-expression";T1': "type_1"', ---, Tn': "type_n"' 'where "condition_1", ---, "condition_m"')`<br />
 `type-expression`, `condition_i`s, and `type_i`s may contain the types `T1, ---, Tn`.
 
 ### Semantics
-A non-abstract tuple-type `(S1, ---, Sm)` is subtype of the abstract-tuple-type `("type-expression";T1': "type_1"', ---, Tn': "type_n"', "condition_1", ---, "condition_m")`<br />
+A non-abstract tuple-type `(S1, ---, Sm)` is subtype of the abstract-tuple-type `("type-expression";T1': "type_1"', ---, Tn': "type_n"' 'where "condition_1", ---, "condition_m"')`<br />
 iff for every tuple member-type `Si`, there exist types `T1`, to `Tn`,<br />
 which satify all conditions (`condition_1` to `condition_m`),<br />
 so that `Si` matches the `type-expression`, where `T1` to `Tn` are inserted into `type-expression` accordingly.
