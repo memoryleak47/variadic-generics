@@ -6,69 +6,205 @@
 # Summary
 [summary]: #summary
 
-One paragraph explanation of the feature.
+This RFC adds variadic generics using tuples.
 
 # Motivation
 [motivation]: #motivation
 
-Why are we doing this? What use cases does it support? What is the expected outcome?
+* [fn types need a reform](http://smallcultfollowing.com/babysteps/blog/2013/10/10/fn-types-in-rust/), and being able to define a trait with a variable number of type parameters would help
+* working with functions which have a variable number of arguments is impossible right now (e.g. a generic `bind` method, `f.bind(a, b)(c) == f(a, b, c)`) and defining such functions may only be done (in a limited fashion) with macros
+* tuples also have similar restrictions right now, there is no way to define a function which takes any tuple and returns the first element, for example
 
-# Guide-level explanation
-[guide-level-explanation]: #guide-level-explanation
+# Detailed design
+[detailed-design]: #detailed-design
 
-Explain the proposal as if it was already included in the language and you were teaching it to another Rust programmer. That generally means:
+## Syntax
+Note: The following syntax is not formally part of this RFC, but will be used to define the syntax!<br />
+- `---` patterns represent continuing patterns, eg. `(T1, T2, ---, T5)` means `(T1, T2, T3, T4, T5)`.<br />
+- strings in double quotes (`"type"`) represent placeholders.<br />
+- strings in single quotes (`'opt'`) represent optional elements.<br />
 
-- Introducing new named concepts.
-- Explaining the feature largely in terms of examples.
-- Explaining how Rust programmers should *think* about the feature, and how it should impact the way they use Rust. It should explain the impact as concretely as possible.
-- If applicable, provide sample error messages, deprecation warnings, or migration guidance.
-- If applicable, describe the differences between teaching this to existing Rust programmers and new Rust programmers.
+## Tuple Types
 
-For implementation-oriented RFCs (e.g. for compiler internals), this section should focus on how compiler contributors should think about the change, and give examples of its concrete impact. For policy RFCs, this section should provide an example-driven introduction to the policy, and explain its impact in concrete terms.
+This RFC adds abstract-tuple-types;<br />
+These types are traits or at least behave like them, as you can use them as trait bounds and they are unsized.<br />
+abstract-tuple-types are types of tuples, which impose conditions to all tuple elements.<br />
+A tuple-type is a either an abstract-tuple-type or any type matching `(T1, ---, Tn)`.
+It is forbidden to implement an abstract-tuple-type on any type manually.
 
-# Reference-level explanation
-[reference-level-explanation]: #reference-level-explanation
+Syntax of an abstract-tuple-type: `("type-expression";T1': "type_1"', ---, Tn': "type_n"' 'where "condition_1", ---, "condition_m"')`<br />
+`type-expression`, `condition_i`s, and `type_i`s may contain the types `T1, ---, Tn`.
 
-This is the technical portion of the RFC. Explain the design in sufficient detail that:
+### Semantics
+A non-abstract tuple-type `(S1, ---, Sm)` is subtype of the abstract-tuple-type `("type-expression";T1': "type_1"', ---, Tn': "type_n"' 'where "condition_1", ---, "condition_m"')`<br />
+iff for every tuple member-type `Si`, there exist types `T1`, to `Tn`,<br />
+which satify all conditions (`condition_1` to `condition_m`),<br />
+so that `Si` matches the `type-expression`, where `T1` to `Tn` are inserted into `type-expression` accordingly.
+### Examples
+- tuples which only contain `u32`: `(u32;)`
+- tuples where all members are `Clone`: `(T;T: Clone)`
+- any tuples: `(T;T)`
+- any tuples, which only contain elements, which are pairs of addable types: `((T,U); T: std::ops::Add<U>, U)`
 
-- Its interaction with other features is clear.
-- It is reasonably clear how the feature would be implemented.
-- Corner cases are dissected by example.
+## The unfold syntax
 
-The section should return to the examples given in the previous section, and explain more fully how the detailed proposal makes those examples work.
+This RFC adds the `...`-syntax for destructuring tuples.<br />
+Intuitively the `...(a, b, ---, z)` syntax removes the parens of the tuple,<br />
+and therefore returns a comma-separated list `a, b, ---, z`.<br />
+This is just allowed in very specific contexts as defined below.
+
+### The unfold syntax for tuple values
+
+#### in Function Calls
+```rust
+    fn addition(x: u32, y: u32) { x + y }
+    let t = (1, 2);
+    let result = addition(...t);
+    assert_eq!(result, 3);
+```
+#### in Arrays
+```rust
+    let a = [1, ...(2, 3, 4)];
+    assert_eq!(a, [1, 2, 3, 4]);
+```
+#### in Tuples
+```rust
+    let a = (1, ...(2, 3, 4));
+    assert_eq!(a, (1, 2, 3, 4));
+```
+#### Destructuring
+```rust
+    let x = (1u32, 2u32, 3u32);
+    let (a, ...b) = x;
+    let (ref c, ref ...d) = x;
+    assert_eq!(a, 1u32);
+    assert_eq!(b, (2u32, 3u32));
+    assert_eq!(c, &1u32);
+    assert_eq!(d, (&2u32, &3u32));
+```
+
+### The unfold syntax for tuple types
+
+Analogous to the unfold syntax for tuple values, there is also such a syntax for tuple types.<br />
+The `...` syntax is only applicable for those types, which are Tuple Types by definition above.<br />
+This is also just allowed in very specific contexts as defined below.
+
+#### in Tuple Types
+```rust
+    type Family32 = (u32, ...(f32, i32));
+```
+#### in Type Parameters
+```rust
+    foo<...(u32, u32)>();
+    type A = HashMap<...(String, bool)>;
+```
+## Variable Number of Arguments
+
+The `...`-Syntax used as prefix of a (function / generic) parameter creates<br />
+- functions with a variable amount of parameters, and
+- generics with a variable amount of generic parameters<br />
+by folding this variable amount of parameters into one tuple paramter of variable size, which in turn may be processed using `...`.
+
+#### in Type Parameters in definitions
+```rust
+    fn foo<...T>() { /* code */ }
+```
+In this context, if `foo<A, B, C, D>()` is called, the type T would be equal to the tuple type `(A, B, C, D)`.<br />
+foo can also be called with one (named `U`) or zero type arguments, this would cause T to be a `(U,)` or `()` respectively.<br />
+Every type parameter of the form `...T` implicitly gets the trait bound `(X;X)`, and therefore you can call `...T` onto it.<br />
+The `...T` syntax is also allowed in combination with other generic parameters:
+```rust
+    fn bar<T, ...U>() { /* code */ }
+```
+But it is important, that every `...T` type parameter is the last type parameter.<br />
+Calling `bar<A, B, C, D>()` would mean `T = A` and `U = (B, C, D)`.<br />
+Asterisk type parameters can not only be used for functions but anywhere, where normal type parameters are allowed.
+
+#### on Function Parameters
+In addition to this, you can use the `...`-syntax on function parameters.<br />
+Consider a function with an argument `...arg: (A, B, C, D)`: this causes the function to accept 4 distinct arguments of type A, B, C and D.<br />
+These are internally put together into the quadruple `arg`, when the function is called.
+```rust
+    fn addition(...arg: (u32, u32)) -> u32 {
+        arg.0 + arg.1
+    }
+```
+or using `...`-syntax again:
+```rust
+
+    fn addition(...arg: (u32, u32)) -> u32 {
+        [...arg].iter().sum()
+    }
+```
+An argument prefixed by `...` has to be the last function argument.<br />
+These addition functions are equivalent to the definition of `addition` above.<br />
+The `...` syntax can also be used in lambda-expressions, and can also be combined with `mut`: `|mut ...arg| { /* code */ }`.
+
+## Examples
+```rust
+    use std::fmt::Display;
+
+    // addition
+    fn u32_addition<T: (u32;)>(...arg: T) -> u32 {
+        [...arg].iter().sum()
+    }
+
+    fn any_addition<T: std::ops::Add<T, Output=T>, U: (T;)>(...arg: U) -> T {
+        [...arg].iter().sum()
+    }
+
+    // tuple
+    fn tuple<T>(...arg: T) -> T { arg }
+
+    fn tuplezip<T: (X;X), U: (X;X)>(t: T, u: U) -> (...T, ...U) {
+        (...t, ...u)
+    }
+
+    // display tuple
+    trait DisplayTuple {
+        fn printall(&self);
+    }
+
+    impl DisplayTuple for () {
+        fn printall(&self) {}
+    }
+
+    impl<T, U> DisplayTuple for (T, ...U)
+                where T: Display, U: DisplayTuple {
+        fn printall(&self) {
+            let (a, ...b) = self;
+            println!("{}", a);
+            b.printall();
+        }
+    }
+
+    // bind
+    fn bind<T, F: Fn(T, ...U), ...U>(f: F, t: T) -> impl Fn(...U) {
+        |...u: U| f(t, ...u)
+    }
+
+    fn main() {
+        assert_eq!((true, false), tuple(true, false));
+        (2i32, 3u32).printall();
+    }
+```
 
 # Drawbacks
 [drawbacks]: #drawbacks
 
-Why should we *not* do this?
+This RFC adds the `...` syntax on tuples and therefore adds complexity to the language.
 
-# Rationale and alternatives
+# Alternatives
 [rationale-and-alternatives]: #rationale-and-alternatives
 
-- Why is this design the best in the space of possible designs?
-- What other designs have been considered and what is the rationale for not choosing them?
-- What is the impact of not doing this?
+- don't add this or anything similar
 
 # Prior art
 [prior-art]: #prior-art
 
-Discuss prior art, both the good and the bad, in relation to this proposal.
-A few examples of what this can include are:
-
-- For language, library, cargo, tools, and compiler proposals: Does this feature exist in other programming languages and what experience have their community had?
-- For community proposals: Is this done by some other community and what were their experiences with it?
-- For other teams: What lessons can we learn from what other communities have done here?
-- Papers: Are there any published papers or great posts that discuss this? If you have some relevant papers to refer to, this can serve as a more detailed theoretical background.
-
-This section is intended to encourage you as an author to think about the lessons from other languages, provide readers of your RFC with a fuller picture.
-If there is no prior art, that is fine - your ideas are interesting to us whether they are brand new or if it is an adaptation from other languages.
-
-Note that while precedent set by other languages is some motivation, it does not on its own motivate an RFC.
-Please also take into consideration that rust sometimes intentionally diverges from common language features.
+C++11 has powerful variadic templates, yet these have some drawbacks:
+- Tedious syntax: `template <typename ...Ts> void foo(Ts ...args) { ... }`
+- You can't easily impose conditions onto types like `T: Clone`
 
 # Unresolved questions
 [unresolved-questions]: #unresolved-questions
-
-- What parts of the design do you expect to resolve through the RFC process before this gets merged?
-- What parts of the design do you expect to resolve through the implementation of this feature before stabilization?
-- What related issues do you consider out of scope for this RFC that could be addressed in the future independently of the solution that comes out of this RFC?
